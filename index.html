@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>T•Solutions — Lyrics (Karaoke)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="logo.png" class="logo" alt="T•Solutions">
+      <h1>T•Solutions</h1>
+    </div>
+    <a class="cta" target="_blank" href="https://tatjanasepur.github.io/t-solutions-site/">Hire me</a>
+  </header>
+
+  <main class="player">
+    <section class="art">
+      <div class="cover"></div>
+      <div class="meta">
+        <h2>Demo karaoke sync</h2>
+        <p class="note">HTML + CSS + ~90 linija JS • ubaci sopstveni audio i LRC</p>
+      </div>
+      <audio id="audio" controls preload="metadata">
+        <!-- STAVI SVOJ FAJL: audio.mp3 (kratak preview/royalty-free) -->
+        <source src="audio.mp3" type="audio/mpeg">
+      </audio>
+      <div class="controls">
+        <button id="loadExample">Load demo LRC</button>
+      </div>
+    </section>
+
+    <section class="lyrics-wrap">
+      <div id="lyrics" class="lyrics">
+        <div class="placeholder">
+          <p>Učitaj audio i pritisni ▶️</p>
+          <p>Linije će se automatski skrolovati i “puniti”.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© T•Solutions • Full-Stack · .NET · Games · AI</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
