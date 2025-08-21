@@ -52,4 +52,52 @@ body{
 .panel{
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.04));
   border:1px solid var(--stroke);backdrop-filter:blur(14px);
-  border-
+  border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)
+}
+
+/* Sidebar */
+.left{padding:18px}
+.cover{
+  width:100%;aspect-ratio:1/1;border-radius:18px;margin-bottom:14px;
+  background:
+  conic-gradient(from 0deg, rgba(65,210,255,.28), rgba(155,107,255,.28), rgba(65,210,255,.28)),
+  linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  box-shadow: 0 20px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.meta .song{margin:6px 0 2px;font-size:22px}
+.meta .artist{color:var(--muted);font-size:14px}
+.meta .artist span{color:var(--accent)}
+
+.controls{margin-top:12px;display:flex;flex-direction:column;gap:12px}
+.transport{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center}
+.time{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+#seek,#vol{appearance:none;height:8px;border-radius:999px;background:var(--pill);outline:none}
+#seek::-webkit-slider-thumb,#vol::-webkit-slider-thumb{
+  appearance:none;width:16px;height:16px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;box-shadow:0 0 0 3px rgba(255,255,255,.15)
+}
+#cur,#dur{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+
+.actions{display:flex;gap:8px}
+
+/* Lyrics */
+.lyrics-wrap{padding:16px;max-height:70vh;overflow:hidden}
+.lyrics{height:100%;overflow:auto;scroll-behavior:smooth;padding-right:10px}
+.placeholder{color:var(--muted);text-align:center;padding:40px 10px}
+
+.line{padding:6px 2px;transform:translateX(0);transition:transform .25s}
+.line.active{transform:translateX(4px)}
+/* Karaoke fill: siva “baza” + maska koja raste */
+.line .base{color:#8fa4ff}
+.line .fill{
+  color:transparent;
+  background-image:linear-gradient(var(--fg),var(--fg));
+  background-repeat:no-repeat;
+  background-size:0% 100%;      /* JS postavlja procenat */
+  -webkit-background-clip:text;background-clip:text;
+  text-shadow:0 0 20px rgba(65,210,255,.22)
+}
+
+/* Footer */
+.site-footer p{color:var(--muted);font-size:13px}
+
