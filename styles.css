@@ -1,35 +1,55 @@
-*{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;color:#eaf2ff;background:
-radial-gradient(1000px 700px at 15% 10%,rgba(68,209,255,.14),transparent 55%),
-radial-gradient(900px 600px at 85% 80%,rgba(168,85,247,.16),transparent 55%),
-#0e1220}
-.site-header,.site-footer{max-width:1100px;margin:16px auto;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
-.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border-radius:12px}
-.cta{background:#eaf2ff;color:#0b0f1a;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
-.player{max-width:1100px;margin:24px auto 40px;display:grid;grid-template-columns:360px 1fr;gap:24px;padding:0 12px}
-@media (max-width:900px){.player{grid-template-columns:1fr}}
-.art,.lyrics-wrap{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:22px}
-.art{padding:16px}.cover{width:100%;aspect-ratio:1/1;border-radius:18px;background:
-conic-gradient(from 0deg,rgba(68,209,255,.35),rgba(168,85,247,.35),rgba(68,209,255,.35)),
-linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.02));box-shadow:0 25px 60px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06)}
-.meta h2{margin:12px 0 6px}.note{margin:0 0 10px;color:#a8b7ff;font-size:14px}
-audio{width:100%;border-radius:12px}
-.controls{display:flex;gap:10px;margin-top:10px}
-.controls button{background:#1e2643;border:1px solid rgba(255,255,255,.12);color:#eaf2ff;padding:8px 12px;border-radius:10px;cursor:pointer}
-.controls button:hover{filter:brightness(1.1)}
-
-.lyrics-wrap{padding:16px;max-height:70vh;overflow:hidden}
-.lyrics{height:100%;overflow:auto;scroll-behavior:smooth;padding-right:8px}
-.line{font-size:clamp(16px,1.6vw,22px);line-height:1.6;color:#9fb3ff;padding:4px 2px;transition:transform .25s}
-.line.active{transform:translateX(4px)}
-/* karaoke “fill” efekat: sivo ispod, akcent preko sa maskom koja raste */
-.line .base{color:#9fb3ff}
-.line .fill{
-  color:transparent;
-  background-image:linear-gradient(#eaf2ff,#eaf2ff);
-  background-repeat:no-repeat;
-  background-size:0% 100%;           /* JS menja procenat u realnom vremenu */
-  -webkit-background-clip:text;
-  background-clip:text;
-  text-shadow:0 0 16px rgba(68,209,255,.25);
+/* ====== Theme ====== */
+:root{
+  --bg:#0b0f1a;
+  --card:#131a2b;
+  --card2:#0f1626;
+  --stroke:rgba(255,255,255,.07);
+  --fg:#e9f0ff;
+  --muted:#9fb3ff;
+  --accent:#41d2ff;
+  --accent2:#9b6bff;
+  --pill:#1f2a44;
 }
-.placeholder{color:#a8b7ff;text-align:center;padding:40px 10px}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Arial,sans-serif;
+  color:var(--fg);
+  background: radial-gradient(1000px 700px at 20% 10%,rgba(65,210,255,.10),transparent 55%),
+              radial-gradient(900px 600px at 80% 85%,rgba(155,107,255,.12),transparent 55%),
+              var(--bg);
+  overflow-x:hidden;
+}
+
+/* Glows */
+.bg{position:fixed;inset:-20%;filter:blur(80px);opacity:.35;pointer-events:none}
+.fx1{background:radial-gradient(600px 600px at 25% 20%,rgba(65,210,255,.35),transparent 60%)}
+.fx2{background:radial-gradient(600px 600px at 75% 80%,rgba(155,107,255,.35),transparent 60%)}
+
+/* Header */
+.site-header,.site-footer{
+  max-width:1200px;margin:16px auto;display:flex;
+  align-items:center;justify-content:space-between;padding:0 16px
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:12px;object-fit:cover;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.brand-text .title{font-weight:800;letter-spacing:.2px}
+.brand-text .tag{font-size:12px;color:var(--muted);opacity:.9}
+.nav{display:flex;gap:10px}
+.btn{border:1px solid var(--stroke);color:var(--fg);background:transparent;padding:10px 14px;border-radius:12px;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.solid{background:var(--fg);color:#0b0f1a;border-color:transparent;font-weight:700}
+.btn.ghost{background:var(--pill)}
+.btn.round{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0f1a;font-weight:800;border:none}
+
+/* Layout */
+.app{
+  max-width:1200px;margin:24px auto 40px;
+  display:grid;grid-template-columns:360px 1fr;gap:24px;padding:0 16px
+}
+@media (max-width:1000px){.app{grid-template-columns:1fr}}
+.panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.04));
+  border:1px solid var(--stroke);backdrop-filter:blur(14px);
+  border-
