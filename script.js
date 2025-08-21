@@ -1,102 +1,147 @@
-/* Minimal karaoke engine:
-   - učitava LRC (linijski tajming)
-   - skroluje do aktivne linije
-   - “puni” tekst levo→desno tokom trajanja linije
-   - radi i bez spoljnog .lrc (dugme učita demo) */
+/* Spotify-like karaoke engine (vanilla JS, ~120 linija)
+   - Učitaj demo LRC ili importuj .lrc fajl
+   - Autoscroll, aktivna linija, karaoke “fill”
+   - Kontrole: play/pause, seek, volume
+*/
 
 const audio = document.getElementById('audio');
+const playBtn = document.getElementById('play');
+const seek = document.getElementById('seek');
+const vol = document.getElementById('vol');
+const cur = document.getElementById('cur');
+const dur = document.getElementById('dur');
 const lyricsEl = document.getElementById('lyrics');
-const loadBtn = document.getElementById('loadExample');
+const loadDemo = document.getElementById('loadDemo');
+const loadFile = document.getElementById('loadFile');
+const fileInput = document.getElementById('fileInput');
 
-// DEMO LRC (zameni svojim .lrc fajlom ili tekstom)
 const demoLRC = `
-[00:00.00]  (Intro)
-[00:07.00]  I code the rhythm as it flows
-[00:12.50]  Lines of light and audio
-[00:18.00]  Watch the lyrics come alive
-[00:23.40]  This is T•Solutions vibe
-[00:28.50]  (Instrumental)
+[00:00.00] (Intro)
+[00:07.00] I code the rhythm as it flows
+[00:12.40] Lines of light and audio
+[00:17.80] Watch the lyrics come alive
+[00:23.10] This is T•Solutions vibe
+[00:28.50] (Instrumental)
 `;
 
-// Ako imaš fajl "lyrics.lrc" u repo-u, odkomentariši sledeće dve linije
-//window.addEventListener('load', () => fetchLRC('lyrics.lrc'));
-loadBtn.addEventListener('click', () => setLRC(demoLRC.trim()));
+// ===== Helpers =====
+const z = s => s.toString().padStart(2,'0');
+const fmt = t => `${Math.floor(t/60)}:${z(Math.floor(t%60))}`;
 
-// Parser LRC
 function parseLRC(text){
-  const out = [];
-  for (const raw of text.split(/\r?\n/)) {
+  const out=[];
+  for(const raw of text.split(/\r?\n/)){
     const matches = [...raw.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,2}))?\]\s*(.*)/g)];
-    for (const m of matches) {
-      const min = +m[1], sec = +m[2], cs = +(m[3]||0);
-      const time = min*60 + sec + cs/100;
-      const line = m[4].trim();
-      out.push({time, line});
+    for(const m of matches){
+      const min=+m[1], sec=+m[2], cs=+(m[3]||0);
+      const time=min*60+sec+cs/100;
+      const line=m[4].trim();
+      out.push({time,line});
     }
   }
   out.sort((a,b)=>a.time-b.time);
-  // trajanje linije = do vremena sledeće (fallback 2.5s)
-  for (let i=0;i<out.length;i++){
-    out[i].end = (i<out.length-1 ? out[i+1].time : out[i].time+2.5);
-    if (out[i].end <= out[i].time) out[i].end = out[i].time + 2.5;
+  for(let i=0;i<out.length;i++){
+    out[i].end = i<out.length-1 ? Math.max(out[i].time+0.4, out[i+1].time) : out[i].time+2.5;
   }
   return out;
 }
 
-function setLRC(text){
-  const lines = parseLRC(text);
-  if (!lines.length){
-    lyricsEl.innerHTML = `<div class="placeholder">Nije nađen sadržaj u LRC-u.</div>`;
-    return;
-  }
-  // Render
-  lyricsEl.innerHTML = '';
+function render(lines){
+  lyricsEl.innerHTML='';
   const nodes = lines.map(({line})=>{
-    const el = document.createElement('div');
-    el.className = 'line';
-    el.innerHTML = `<span class="base">${escapeHTML(line)}</span>
-                    <span class="fill">${escapeHTML(line)}</span>`;
-    lyricsEl.appendChild(el);
-    return el;
+    const row = document.createElement('div');
+    row.className='line';
+    row.innerHTML = `<span class="base">${escapeHTML(line)}</span>
+                     <span class="fill">${escapeHTML(line)}</span>`;
+    lyricsEl.appendChild(row);
+    return row;
   });
-
-  // Petlja
-  let idx = 0;
-  function frame(){
-    const t = audio.currentTime || 0;
-    // pronađi trenutnu liniju
-    while (idx < lines.length-1 && t >= lines[idx+1].time - 0.01) idx++;
-    while (idx > 0 && t < lines[idx].time - 0.01) idx--;
-
-    nodes.forEach((el,i)=>el.classList.toggle('active', i===idx));
-    // auto-scroll (centar)
-    const active = nodes[idx];
-    if (active){
-      const box = lyricsEl.getBoundingClientRect();
-      const elr = active.getBoundingClientRect();
-      const delta = elr.top - box.top - box.height*0.45;
-      if (Math.abs(delta) > 2) lyricsEl.scrollBy({top: delta, behavior:'smooth'});
-      // karaoke “fill”: procenat od starta do kraja linije
-      const start = lines[idx].time, end = lines[idx].end;
-      const p = Math.max(0, Math.min(1, (t - start) / (end - start)));
-      const fill = active.querySelector('.fill');
-      if (fill) fill.style.backgroundSize = (p*100).toFixed(1) + '% 100%';
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
-// (opciono) učitaj eksterni LRC fajl
-async function fetchLRC(path){
-  try{
-    const res = await fetch(path);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const text = await res.text();
-    setLRC(text);
-  }catch(e){
-    lyricsEl.innerHTML = `<div class="placeholder">Ne mogu da učitam <code>${path}</code>. Klikni “Load demo LRC”.</div>`;
-  }
+  return nodes;
 }
 
 function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+
+// ===== State =====
+let LINES = [];
+let NODES = [];
+let idx = 0;
+
+// ===== Controls =====
+playBtn.addEventListener('click', ()=>{
+  if(audio.paused){ audio.play(); } else { audio.pause(); }
+});
+audio.addEventListener('play', ()=> playBtn.textContent='⏸');
+audio.addEventListener('pause',()=> playBtn.textContent='▶');
+
+audio.addEventListener('loadedmetadata', ()=>{
+  seek.max = audio.duration || 0;
+  dur.textContent = fmt(audio.duration || 0);
+});
+audio.addEventListener('timeupdate', ()=>{
+  if(!seek.dragging){ seek.value = audio.currentTime; }
+  cur.textContent = fmt(audio.currentTime || 0);
+});
+seek.addEventListener('input', ()=>{ seek.dragging=true; });
+seek.addEventListener('change', ()=>{ audio.currentTime = +seek.value; seek.dragging=false; });
+vol.addEventListener('input', ()=> audio.volume = +vol.value);
+
+// ===== Loaders =====
+loadDemo.addEventListener('click', ()=>{
+  setLRC(demoLRC);
+});
+loadFile.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const text = await f.text();
+  setLRC(text);
+});
+
+// ===== Karaoke core =====
+function setLRC(text){
+  LINES = parseLRC(text);
+  if(!LINES.length){
+    lyricsEl.innerHTML = `<div class="placeholder">No timed lines found.</div>`;
+    return;
+  }
+  NODES = render(LINES);
+  idx = 0;
+}
+
+function tick(){
+  const t = audio.currentTime || 0;
+
+  // find current line
+  while(idx < LINES.length-1 && t >= LINES[idx+1].time - 0.01) idx++;
+  while(idx > 0 && t < LINES[idx].time - 0.01) idx--;
+
+  // highlight & scroll
+  NODES.forEach((el,i)=> el.classList.toggle('active', i===idx));
+  const active = NODES[idx];
+  if(active){
+    const box = lyricsEl.getBoundingClientRect();
+    const r = active.getBoundingClientRect();
+    const delta = r.top - box.top - box.height*0.45;
+    if(Math.abs(delta) > 2) lyricsEl.scrollBy({top: delta, behavior:'smooth'});
+
+    // fill %
+    const start = LINES[idx].time, end = LINES[idx].end;
+    const p = Math.max(0, Math.min(1, (t - start) / (end - start)));
+    const fill = active.querySelector('.fill');
+    if(fill) fill.style.backgroundSize = (p*100).toFixed(1) + '% 100%';
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// Init with demo so odmah izgleda živo i BEZ audio fajla
+setLRC(demoLRC);
+
+// Ako želiš da “svira” i bez audio.mp3: simuliraj vreme
+// (otkomentariši ova 4 reda i nemoj play da koristiš)
+/*
+let fakeT=0; setInterval(()=>{ fakeT+=0.1; audio.currentTime=fakeT; }, 100);
+Object.defineProperty(audio,'currentTime',{get(){return fakeT},set(v){fakeT=v}});
+Object.defineProperty(audio,'duration',{get(){return 120}});
+*/
+
