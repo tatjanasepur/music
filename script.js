@@ -1,4 +1,4 @@
-// === Tvoj YouTube Data API ključ ===
+// === YouTube Data API ključ ===
 const YT_API_KEY = 'AIzaSyA83EhnWEfgqd-ejMqT_NkZJ23kte8-MV8';
 
 // ===== DOM =====
@@ -32,7 +32,7 @@ function parseQueryForArtistTitle(input){
   return { artist, title };
 }
 
-// ===== LRC parsing & rendering =====
+// ===== LRC =====
 function parseLRC(text){
   const out=[];
   for(const raw of text.split(/\r?\n/)){
@@ -74,16 +74,18 @@ function render(lines){
   return nodes;
 }
 
-// ===== Karaoke state =====
+// ===== State =====
 let LINES = []; let NODES = []; let idx = 0;
 
-// ===== YouTube loader: robust =====
+// ===== YouTube adapter (nocookie host + robust loader) =====
 let ytPlayer = null;
 let ytReady = false;
 let usingYouTube = true;
 
+// kreiraj player sa nocookie hostom
 function initYTPlayer(){
   ytPlayer = new YT.Player('yt', {
+    host: 'https://www.youtube-nocookie.com', // ovo često prolazi kroz blokere
     videoId: null,
     playerVars: { autoplay: 0, controls: 1, modestbranding: 1 },
     events: {
@@ -97,17 +99,16 @@ function initYTPlayer(){
 }
 window.onYouTubeIframeAPIReady = function(){ initYTPlayer(); };
 
-// ako callback ne dođe, ručno učitaj i probaj ponovo
-async function ensureYTAPI(timeout=10000){
+// ako callback ne dođe → ručno ubaci script i čekaj duže
+async function ensureYTAPI(timeout=15000){
   if (window.YT && YT.Player) return true;
-  // Ako nije u DOM-u, dodaj script tag
+
   const already = [...document.scripts].some(s=>s.src.includes('iframe_api'));
   if(!already){
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     document.head.appendChild(tag);
   }
-  // Poll dok ne postane dostupno
   const start = Date.now();
   return await new Promise(resolve=>{
     const t = setInterval(()=>{
@@ -134,7 +135,7 @@ const audioAdapter = {
 };
 function A(){ return audioAdapter; }
 
-// ===== UI controls =====
+// ===== Transport =====
 playBtn.addEventListener('click', ()=>{ if(A().paused){ A().play(); } else { A().pause(); }});
 audio.addEventListener('play', ()=> playBtn.textContent='⏸');
 audio.addEventListener('pause',()=> playBtn.textContent='▶');
@@ -152,9 +153,12 @@ seek.addEventListener('input', ()=>{ seek.dragging=true; });
 seek.addEventListener('change', ()=>{ A().currentTime = +seek.value; seek.dragging=false; });
 vol.addEventListener('input', ()=> A().volume = +vol.value);
 
-// ===== Search bar =====
+// ===== Search UI =====
 q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
 clearBtn.addEventListener('click', ()=>{ q.value=''; q.focus(); });
+
+function setButtonLoading(){ searchPlay.disabled = true; searchPlay.textContent = 'Loading…'; }
+function setButtonIdle(){ searchPlay.disabled = false; searchPlay.textContent = 'Search'; }
 
 // ===== Demo/file =====
 const demoLRC = `
@@ -172,26 +176,15 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
-// ===== Dugme stanja (loading/idle) =====
-function setButtonLoading(){
-  searchPlay.disabled = true;
-  searchPlay.textContent = 'Loading…';
-}
-function setButtonIdle(){
-  searchPlay.disabled = false;
-  searchPlay.textContent = 'Search';
-}
-
 // ===== Search & Play =====
 searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
   if(!query) return;
 
   setButtonLoading();
-  const ok = await ensureYTAPI(10000);
+  const ok = await ensureYTAPI(15000);
   if(!ok){
     setButtonIdle();
-    // nema alert-a: pokaži poruku u lyrics panelu
     lyricsEl.innerHTML = `<div class="placeholder">YouTube player je blokiran (ad-block?) ili se nije učitao.<br>Isključi blokatore za <b>github.io</b> i osveži stranicu.</div>`;
     return;
   }
@@ -199,7 +192,7 @@ searchPlay.addEventListener('click', async ()=>{
   const video = await searchYouTubeFirstVideo(query);
   if(!video){
     setButtonIdle();
-    lyricsEl.innerHTML = `<div class="placeholder">Nije nađen video. Proveri API ključ ili probaj precizniji naziv.</div>`;
+    lyricsEl.innerHTML = `<div class="placeholder">Nije nađen video. Proveri API key ili probaj precizniji naziv.</div>`;
     return;
   }
 
@@ -294,7 +287,7 @@ async function fetchLyricsFromLRCLIB({artist, title}){
   return null;
 }
 
-// ===== Karaoke core =====
+// ===== Karaoke loop =====
 function setLRC(text){
   LINES = parseLRC(text);
   if(!LINES.length){
@@ -331,13 +324,5 @@ function tick(){
 }
 requestAnimationFrame(tick);
 
-// Init demo lyrics
-const demo = `
-[00:00.00] (Intro)
-[00:07.00] I code the rhythm as it flows
-[00:12.40] Lines of light and audio
-[00:17.80] Watch the lyrics come alive
-[00:23.10] This is T•Solutions vibe
-[00:28.50] (Instrumental)
-`;
-setLRC(demo);
+// Init demo
+setLRC(demoLRC);
