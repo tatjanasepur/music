@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
+  <!-- primarni YT API (script.js ima i fallback) -->
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
@@ -37,16 +38,18 @@
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           <input id="q" class="input" placeholder="Artist – Song …" inputmode="search" aria-label="Search song" />
           <button id="clear" class="chip" aria-label="Clear">×</button>
-          <button id="searchPlay" class="btn primary" aria-label="Search and play">Search</button>
+          <button id="searchPlay" class="btn primary" aria-label="Search">Search</button>
         </div>
         <div class="hints">
-          <span class="pill">Try: <em>Adele – Hello</em></span>
-          <span class="pill alt">Or paste a YouTube link</span>
+          <span class="pill">Primer: <em>Adele – Hello</em></span>
+          <span class="pill alt">Može i YouTube link</span>
         </div>
       </div>
 
       <!-- RESULTS LIST -->
-      <div id="results" class="results"></div>
+      <div id="results" class="results">
+        <div class="msg">Ukucaj pesmu iznad i pritisni <b>Search</b>.</div>
+      </div>
 
       <!-- YT PLAYER -->
       <div class="yt-wrap">
@@ -86,8 +89,7 @@
     <section class="panel lyrics-wrap">
       <div id="lyrics" class="lyrics">
         <div class="placeholder">
-          <p>Upiši pesmu (npr. <b>Adele – Hello</b>) ili nalepi YouTube link, pa klikni <b>Search</b>.</p>
-          <p>Dobiješ listu rezultata. Klikom pušta video i lyrics.</p>
+          <p>Listamo rezultate kao na YouTube-u. Klik na rezultat pušta video i lyrics.</p>
         </div>
       </div>
     </section>
@@ -95,6 +97,6 @@
 
   <footer class="site-footer"><p>© T•Solutions — Modern web experiences</p></footer>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>
