@@ -5,25 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>T•Solutions — Lyrics Player</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- YouTube IFrame API (mora biti PRE script.js) -->
+  <!-- YouTube IFrame API mora pre script.js -->
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-  <!-- blagi glows -->
   <div class="bg fx1"></div>
   <div class="bg fx2"></div>
 
   <header class="site-header">
     <div class="brand">
-      <img src="assets/ts-logo.png" alt="T•Solutions" class="logo" onerror="this.style.display='none'">
+      <img src="ts-logo.png.jpeg" alt="T•Solutions" class="logo" onerror="this.style.display='none'">
       <div class="brand-text">
         <div class="title">T•Solutions</div>
         <div class="tag">FULL-STACK • .NET • GAMES • AI</div>
@@ -36,17 +33,24 @@
 
   <main class="app">
     <aside class="panel left">
-      <!-- Search -->
+      <!-- SEARCH BAR (pro nivo) -->
       <div class="search">
-        <input id="q" class="input" inputmode="search" placeholder="Artist – Song (upiši i pritisni Enter)" aria-label="Search song" />
-        <button id="searchPlay" class="btn primary" aria-label="Search and play">Search & Play</button>
+        <div class="searchbar">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="q" class="input" placeholder="Artist – Song …" inputmode="search" aria-label="Search song" />
+          <button id="clear" class="chip" aria-label="Clear">×</button>
+          <button id="searchPlay" class="btn primary" aria-label="Search and play">Search</button>
+        </div>
+        <div class="hints">
+          <span class="pill">Try: <em>Adele – Hello</em></span>
+          <span class="pill alt">Or paste a YouTube link</span>
+        </div>
       </div>
 
-      <!-- YouTube mount -->
+      <!-- YouTube player -->
       <div class="yt-wrap">
         <div id="yt" class="yt"></div>
-        <!-- opcioni brending overlay (sakri ako ne želiš logo na playeru) -->
-        <img src="assets/ts-logo.png" alt="" class="yt-logo" onerror="this.style.display='none'">
+        <img src="ts-logo.png.jpeg" alt="" class="yt-logo" onerror="this.style.display='none'">
       </div>
 
       <!-- Meta / cover -->
@@ -58,7 +62,6 @@
 
       <!-- Transport -->
       <div class="controls">
-        <!-- fallback audio (nije obavezno, ostavljeno radi kompatibilnosti) -->
         <audio id="audio" preload="metadata"><source src="" type="audio/mpeg"></audio>
 
         <div class="transport">
@@ -84,8 +87,8 @@
     <section class="panel lyrics-wrap">
       <div id="lyrics" class="lyrics">
         <div class="placeholder">
-          <p>Upiši pesmu (npr: “Adele – Hello”) i klikni <b>Search & Play</b> ili pritisni <b>Enter</b>.</p>
-          <p>Lyrics će se automatski povući i sinhronizovati sa YouTube playerom.</p>
+          <p>Upiši pesmu (npr. <b>Adele – Hello</b>) ili nalepi YouTube link, pa klikni <b>Search</b>.</p>
+          <p>Lyrics se automatski povlače i sinhronizuju sa videom.</p>
         </div>
       </div>
     </section>
