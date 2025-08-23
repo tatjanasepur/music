@@ -1,7 +1,10 @@
 /* Search & Play: YouTube + auto-lyrics (LRCLIB) + karaoke fill */
 
+// --- YouTube Data API ključ (tvoj lični) ---
+const YT_API_KEY = 'AIzaSyA83EhnWEfgqd-ejMqT_NkZJ23kte8-MV8';
+
 // ===== DOM =====
-const audio = document.getElementById('audio'); // fallback (nije obavezno)
+const audio = document.getElementById('audio');
 const playBtn = document.getElementById('play');
 const seek = document.getElementById('seek');
 const vol = document.getElementById('vol');
@@ -18,18 +21,14 @@ const songTitleEl = document.getElementById('songTitle');
 const songArtistEl = document.getElementById('songArtist');
 const coverEl = document.getElementById('cover');
 
-// ===== CONFIG: ubaci svoj YouTube Data API key (https://console.cloud.google.com/apis/library/youtube.googleapis.com) =====
-const YT_API_KEY = 'PASTE_YOUR_YOUTUBE_DATA_API_KEY_HERE'; // ← OBAVEZNO ako želiš pretragu samo po tekstu
-
 // ===== Helpers =====
 const z = s => s.toString().padStart(2,'0');
 const fmt = t => `${Math.floor(t/60)}:${z(Math.floor(t%60))}`;
 function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
 
-// Heuristika "Artist – Song"
 function parseQueryForArtistTitle(input){
   let s = input.trim();
-  try { new URL(s); return null; } catch {} // ako je URL, vrati null
+  try { new URL(s); return null; } catch {}
   const sep = s.includes(' – ') ? ' – ' : (s.includes(' - ') ? ' - ' : null);
   if(!sep) return { artist:'', title:s };
   const [artist, title] = s.split(sep, 2).map(x=>x.trim());
@@ -55,7 +54,7 @@ function parseLRC(text){
   return out;
 }
 
-// Plain → meki tajming
+// Plain → soft timing
 function makeSoftTimedLines(plain){
   const lines = plain.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   const base = 2.8;
@@ -90,7 +89,7 @@ let idx = 0;
 // ===== YouTube adapter =====
 let ytPlayer = null;
 let ytReady = false;
-let usingYouTube = true; // podrazumevano koristimo YT
+let usingYouTube = true;
 
 window.onYouTubeIframeAPIReady = function(){
   ytPlayer = new YT.Player('yt', {
@@ -157,40 +156,34 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
-// ===== Search & Play (Enter + klik) =====
+// ===== Search & Play =====
 q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
 searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
   if(!query){ return; }
   if(!ytReady){ alert('YouTube player se učitava, probaj za sekund.'); return; }
 
-  // 1) Nadji video na YouTube (po nazivu)
   const video = await searchYouTubeFirstVideo(query);
-  if(!video){ alert('Nije nađen video. Pokušaj precizniji naziv.'); return; }
+  if(!video){ alert('Nije nađen video.'); return; }
 
-  // 2) Pusti video + postavi trajanje + cover
   ytPlayer.loadVideoById(video.id);
   setTimeout(syncUI, 1200);
   applyMetaFromVideo(video);
 
-  // 3) Automatski povuci lyrics (artist/title heuristika)
   const guess = parseQueryForArtistTitle(video.title || query) || {artist:'', title: video.title || query};
   const lrc = await fetchLyricsFromLRCLIB(guess);
   if(lrc){ setLRC(lrc); } else {
-    // fallback: pokušaj sa onim što je korisnik upisao
     const at2 = parseQueryForArtistTitle(query) || {artist:'', title:query};
     const lrc2 = await fetchLyricsFromLRCLIB(at2);
     if(lrc2) setLRC(lrc2);
     else lyricsEl.innerHTML = `<div class="placeholder">Lyrics nisu nađeni za: ${escapeHTML(video.title)}</div>`;
   }
 
-  // auto-play
   A().play();
 });
 
 // YouTube pretraga
 async function searchYouTubeFirstVideo(query){
-  // ako korisnik nalepi YouTube URL, izvuci ID i vrati "lažni" objekat
   const maybeId = extractYouTubeID(query);
   if(maybeId){
     const title = await fetchOEmbedTitle(maybeId).catch(()=>null);
@@ -201,7 +194,7 @@ async function searchYouTubeFirstVideo(query){
       channel: ''
     };
   }
-  if(!YT_API_KEY || YT_API_KEY.includes('PASTE_YOUR')) return null;
+  if(!YT_API_KEY) return null;
 
   const params = new URLSearchParams({
     part: 'snippet',
@@ -311,4 +304,3 @@ requestAnimationFrame(tick);
 
 // Init demo
 setLRC(demoLRC);
-
