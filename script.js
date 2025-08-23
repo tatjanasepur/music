@@ -1,9 +1,4 @@
-/* T•Solutions Lyrics Player — YouTube + LRCLIB, sa modernim UI/UX
-   - Upiši "Artist – Song" ili nalepi YouTube URL → pusti video + lyrics
-   - Optimizovano za mobilni/tablet/desktop
-*/
-
-// === TVOJ YOUTUBE DATA API KLJUČ ===
+// === Tvoj YouTube Data API ključ ===
 const YT_API_KEY = 'AIzaSyA83EhnWEfgqd-ejMqT_NkZJ23kte8-MV8';
 
 // ===== DOM =====
@@ -17,7 +12,6 @@ const lyricsEl = document.getElementById('lyrics');
 const loadDemo = document.getElementById('loadDemo');
 const loadFile = document.getElementById('loadFile');
 const fileInput = document.getElementById('fileInput');
-
 const q = document.getElementById('q');
 const clearBtn = document.getElementById('clear');
 const searchPlay = document.getElementById('searchPlay');
@@ -38,7 +32,7 @@ function parseQueryForArtistTitle(input){
   return { artist, title };
 }
 
-// LRC parsing
+// ===== LRC parsing & rendering =====
 function parseLRC(text){
   const out=[];
   for(const raw of text.split(/\r?\n/)){
@@ -56,8 +50,6 @@ function parseLRC(text){
   }
   return out;
 }
-
-// Plain → soft timing
 function makeSoftTimedLines(plain){
   const lines = plain.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   const base = 2.8;
@@ -69,8 +61,6 @@ function toLRC(lines){
     return `[${z(m)}:${z(s)}.${z(cs)}] ${x.line}`;
   }).join('\n');
 }
-
-// Render
 function render(lines){
   lyricsEl.innerHTML='';
   const nodes = lines.map(({line})=>{
@@ -84,29 +74,54 @@ function render(lines){
   return nodes;
 }
 
-// ===== State =====
-let LINES = [];
-let NODES = [];
-let idx = 0;
+// ===== Karaoke state =====
+let LINES = []; let NODES = []; let idx = 0;
 
-// ===== YouTube adapter =====
+// ===== YouTube loader: robust =====
 let ytPlayer = null;
 let ytReady = false;
 let usingYouTube = true;
 
-window.onYouTubeIframeAPIReady = function(){
+function initYTPlayer(){
   ytPlayer = new YT.Player('yt', {
     videoId: null,
     playerVars: { autoplay: 0, controls: 1, modestbranding: 1 },
     events: {
-      onReady: () => { ytReady = true; },
+      onReady: () => { ytReady = true; setButtonIdle(); },
       onStateChange: (e) => {
         if(e.data === YT.PlayerState.PLAYING){ audio.dispatchEvent(new Event('play')); }
         if(e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED){ audio.dispatchEvent(new Event('pause')); }
       }
     }
   });
-};
+}
+window.onYouTubeIframeAPIReady = function(){ initYTPlayer(); };
+
+// ako callback ne dođe, ručno učitaj i probaj ponovo
+async function ensureYTAPI(timeout=10000){
+  if (window.YT && YT.Player) return true;
+  // Ako nije u DOM-u, dodaj script tag
+  const already = [...document.scripts].some(s=>s.src.includes('iframe_api'));
+  if(!already){
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }
+  // Poll dok ne postane dostupno
+  const start = Date.now();
+  return await new Promise(resolve=>{
+    const t = setInterval(()=>{
+      if(window.YT && YT.Player){
+        clearInterval(t);
+        if(!ytPlayer) initYTPlayer();
+        resolve(true);
+      }else if(Date.now()-start>timeout){
+        clearInterval(t);
+        resolve(false);
+      }
+    }, 120);
+  });
+}
 
 const audioAdapter = {
   get paused(){ return usingYouTube ? (ytReady ? ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING : true) : audio.paused; },
@@ -119,7 +134,7 @@ const audioAdapter = {
 };
 function A(){ return audioAdapter; }
 
-// ===== Controls =====
+// ===== UI controls =====
 playBtn.addEventListener('click', ()=>{ if(A().paused){ A().play(); } else { A().pause(); }});
 audio.addEventListener('play', ()=> playBtn.textContent='⏸');
 audio.addEventListener('pause',()=> playBtn.textContent='▶');
@@ -128,21 +143,20 @@ audio.addEventListener('loadedmetadata', ()=>{
   seek.max = audio.duration || 0;
   dur.textContent = fmt(audio.duration || 0);
 });
-
 let lastDurSet = 0;
 function syncUI(){
   const d = A().duration || 0;
-  if(d && d !== lastDurSet){
-    lastDurSet = d;
-    seek.max = d;
-    dur.textContent = fmt(d);
-  }
+  if(d && d !== lastDurSet){ lastDurSet = d; seek.max = d; dur.textContent = fmt(d); }
 }
 seek.addEventListener('input', ()=>{ seek.dragging=true; });
 seek.addEventListener('change', ()=>{ A().currentTime = +seek.value; seek.dragging=false; });
 vol.addEventListener('input', ()=> A().volume = +vol.value);
 
-// ===== Demo/file loaders =====
+// ===== Search bar =====
+q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
+clearBtn.addEventListener('click', ()=>{ q.value=''; q.focus(); });
+
+// ===== Demo/file =====
 const demoLRC = `
 [00:00.00] (Intro)
 [00:07.00] I code the rhythm as it flows
@@ -158,35 +172,34 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
-// ===== Wait for YT ready =====
-function waitForYTReady(timeout=8000){
-  return new Promise(resolve=>{
-    if(ytReady) return resolve(true);
-    const start = Date.now();
-    const t = setInterval(()=>{
-      if(ytReady){ clearInterval(t); resolve(true); }
-      else if(Date.now()-start>timeout){ clearInterval(t); resolve(false); }
-    }, 120);
-  });
+// ===== Dugme stanja (loading/idle) =====
+function setButtonLoading(){
+  searchPlay.disabled = true;
+  searchPlay.textContent = 'Loading…';
+}
+function setButtonIdle(){
+  searchPlay.disabled = false;
+  searchPlay.textContent = 'Search';
 }
 
 // ===== Search & Play =====
-q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
-clearBtn.addEventListener('click', ()=>{ q.value=''; q.focus(); });
-
 searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
   if(!query) return;
 
-  const ready = await waitForYTReady(9000);
-  if(!ready){
-    alert('YouTube player je blokiran ili se nije učitao. Isključi ad-block za github.io i osveži stranicu.');
+  setButtonLoading();
+  const ok = await ensureYTAPI(10000);
+  if(!ok){
+    setButtonIdle();
+    // nema alert-a: pokaži poruku u lyrics panelu
+    lyricsEl.innerHTML = `<div class="placeholder">YouTube player je blokiran (ad-block?) ili se nije učitao.<br>Isključi blokatore za <b>github.io</b> i osveži stranicu.</div>`;
     return;
   }
 
   const video = await searchYouTubeFirstVideo(query);
   if(!video){
-    alert('Nije nađen video. Proveri API ključ ili probaj precizniji naziv.');
+    setButtonIdle();
+    lyricsEl.innerHTML = `<div class="placeholder">Nije nađen video. Proveri API ključ ili probaj precizniji naziv.</div>`;
     return;
   }
 
@@ -196,7 +209,8 @@ searchPlay.addEventListener('click', async ()=>{
 
   const guess = parseQueryForArtistTitle(video.title || query) || {artist:'', title: video.title || query};
   const lrc = await fetchLyricsFromLRCLIB(guess);
-  if(lrc){ setLRC(lrc); } else {
+  if(lrc){ setLRC(lrc); }
+  else{
     const at2 = parseQueryForArtistTitle(query) || {artist:'', title:query};
     const lrc2 = await fetchLyricsFromLRCLIB(at2);
     if(lrc2) setLRC(lrc2);
@@ -204,9 +218,10 @@ searchPlay.addEventListener('click', async ()=>{
   }
 
   A().play();
+  setButtonIdle();
 });
 
-// YouTube pretraga
+// ===== YouTube Data search =====
 async function searchYouTubeFirstVideo(query){
   const maybeId = extractYouTubeID(query);
   if(maybeId){
@@ -221,7 +236,7 @@ async function searchYouTubeFirstVideo(query){
   if(!YT_API_KEY) return null;
 
   const params = new URLSearchParams({
-    part: 'snippet', q: query, type: 'video', maxResults: '1', key: YT_API_KEY
+    part:'snippet', q:query, type:'video', maxResults:'1', key:YT_API_KEY
   });
   const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
   if(!r.ok) return null;
@@ -237,7 +252,6 @@ async function searchYouTubeFirstVideo(query){
     channel: sn.channelTitle || ''
   };
 }
-
 function extractYouTubeID(url){
   try{
     const u = new URL(url);
@@ -252,7 +266,6 @@ async function fetchOEmbedTitle(id){
   const j = await r.json();
   return j.title || null;
 }
-
 function applyMetaFromVideo(v){
   songTitleEl.textContent = v.title || 'YouTube';
   songArtistEl.textContent = v.channel || '—';
@@ -263,7 +276,7 @@ function applyMetaFromVideo(v){
   `;
 }
 
-// LRCLIB fetch
+// ===== LRCLIB =====
 async function fetchLyricsFromLRCLIB({artist, title}){
   try{
     const u = new URL('https://lrclib.net/api/get');
@@ -281,17 +294,15 @@ async function fetchLyricsFromLRCLIB({artist, title}){
   return null;
 }
 
-// Karaoke core
+// ===== Karaoke core =====
 function setLRC(text){
   LINES = parseLRC(text);
   if(!LINES.length){
     lyricsEl.innerHTML = `<div class="placeholder">No timed lines found.</div>`;
     return;
   }
-  NODES = render(LINES);
-  idx = 0;
+  NODES = render(LINES); idx = 0;
 }
-
 function tick(){
   const t = A().currentTime || 0;
   if(!seek.dragging){ seek.value = t; }
@@ -320,5 +331,13 @@ function tick(){
 }
 requestAnimationFrame(tick);
 
-// Init demo
-setLRC(demoLRC);
+// Init demo lyrics
+const demo = `
+[00:00.00] (Intro)
+[00:07.00] I code the rhythm as it flows
+[00:12.40] Lines of light and audio
+[00:17.80] Watch the lyrics come alive
+[00:23.10] This is T•Solutions vibe
+[00:28.50] (Instrumental)
+`;
+setLRC(demo);
