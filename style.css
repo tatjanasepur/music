@@ -13,9 +13,7 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
-  font-family:Inter,system-ui,Arial,sans-serif;
-  color:var(--fg);
+  margin:0;font-family:Inter,system-ui,Arial,sans-serif;color:var(--fg);
   background: radial-gradient(1000px 700px at 20% 10%,rgba(65,210,255,.10),transparent 55%),
               radial-gradient(900px 600px at 80% 85%,rgba(155,107,255,.12),transparent 55%),
               var(--bg);
@@ -37,11 +35,15 @@ body{
 .brand-text .title{font-weight:800;letter-spacing:.2px}
 .brand-text .tag{font-size:12px;color:var(--muted);opacity:.9}
 .nav{display:flex;gap:10px}
-.btn{border:1px solid var(--stroke);color:var(--fg);background:transparent;padding:10px 14px;border-radius:12px;cursor:pointer}
+.btn{
+  border:1px solid var(--stroke);color:var(--fg);background:transparent;
+  padding:10px 14px;border-radius:12px;cursor:pointer
+}
 .btn:hover{filter:brightness(1.08)}
 .btn.solid{background:var(--fg);color:#0b0f1a;border-color:transparent;font-weight:700}
 .btn.ghost{background:var(--pill)}
-.btn.round{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0f1a;font-weight:800;border:none}
+.btn.round{width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0f1a;font-weight:800;border:none}
 
 /* Layout */
 .app{
@@ -58,16 +60,19 @@ body{
 /* Sidebar */
 .left{padding:18px}
 .cover{
-  width:100%;aspect-ratio:1/1;border-radius:18px;margin-bottom:14px;
+  width:100%;aspect-ratio:1/1;border-radius:18px;margin:14px 0;
   background:
-  conic-gradient(from 0deg, rgba(65,210,255,.28), rgba(155,107,255,.28), rgba(65,210,255,.28)),
-  linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    conic-gradient(from 0deg, rgba(65,210,255,.28), rgba(155,107,255,.28), rgba(65,210,255,.28)),
+    linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
   box-shadow: 0 20px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06);
 }
 .meta .song{margin:6px 0 2px;font-size:22px}
 .meta .artist{color:var(--muted);font-size:14px}
 .meta .artist span{color:var(--accent)}
 
+.search input.btn{justify-content:flex-start;text-align:left}
+
+/* Controls */
 .controls{margin-top:12px;display:flex;flex-direction:column;gap:12px}
 .transport{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center}
 .time{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
@@ -87,17 +92,15 @@ body{
 
 .line{padding:6px 2px;transform:translateX(0);transition:transform .25s}
 .line.active{transform:translateX(4px)}
-/* Karaoke fill: siva “baza” + maska koja raste */
 .line .base{color:#8fa4ff}
 .line .fill{
   color:transparent;
   background-image:linear-gradient(var(--fg),var(--fg));
   background-repeat:no-repeat;
-  background-size:0% 100%;      /* JS postavlja procenat */
+  background-size:0% 100%;
   -webkit-background-clip:text;background-clip:text;
   text-shadow:0 0 20px rgba(65,210,255,.22)
 }
 
 /* Footer */
 .site-footer p{color:var(--muted);font-size:13px}
-
