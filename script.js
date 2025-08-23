@@ -1,6 +1,6 @@
-/* Search & Play: YouTube + auto-lyrics (LRCLIB) + responsive tweaks
-   - Upiši "Artist – Song" ili nalepi YouTube URL → pusti video + povuci lyrics
-   - YouTube Data API key je već ubačen (restrikcije: github.io + localhost)
+/* T•Solutions Lyrics Player — YouTube + LRCLIB, sa modernim UI/UX
+   - Upiši "Artist – Song" ili nalepi YouTube URL → pusti video + lyrics
+   - Optimizovano za mobilni/tablet/desktop
 */
 
 // === TVOJ YOUTUBE DATA API KLJUČ ===
@@ -19,6 +19,7 @@ const loadFile = document.getElementById('loadFile');
 const fileInput = document.getElementById('fileInput');
 
 const q = document.getElementById('q');
+const clearBtn = document.getElementById('clear');
 const searchPlay = document.getElementById('searchPlay');
 const songTitleEl = document.getElementById('songTitle');
 const songArtistEl = document.getElementById('songArtist');
@@ -157,7 +158,7 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
-// ===== Wait for YT ready (umesto alert odmah) =====
+// ===== Wait for YT ready =====
 function waitForYTReady(timeout=8000){
   return new Promise(resolve=>{
     if(ytReady) return resolve(true);
@@ -171,6 +172,8 @@ function waitForYTReady(timeout=8000){
 
 // ===== Search & Play =====
 q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
+clearBtn.addEventListener('click', ()=>{ q.value=''; q.focus(); });
+
 searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
   if(!query) return;
@@ -218,11 +221,7 @@ async function searchYouTubeFirstVideo(query){
   if(!YT_API_KEY) return null;
 
   const params = new URLSearchParams({
-    part: 'snippet',
-    q: query,
-    type: 'video',
-    maxResults: '1',
-    key: YT_API_KEY
+    part: 'snippet', q: query, type: 'video', maxResults: '1', key: YT_API_KEY
   });
   const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
   if(!r.ok) return null;
