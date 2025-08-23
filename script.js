@@ -1,6 +1,9 @@
-/* Search & Play: YouTube + auto-lyrics (LRCLIB) + karaoke fill */
+/* Search & Play: YouTube + auto-lyrics (LRCLIB) + responsive tweaks
+   - Upiši "Artist – Song" ili nalepi YouTube URL → pusti video + povuci lyrics
+   - YouTube Data API key je već ubačen (restrikcije: github.io + localhost)
+*/
 
-// --- YouTube Data API ključ (tvoj lični) ---
+// === TVOJ YOUTUBE DATA API KLJUČ ===
 const YT_API_KEY = 'AIzaSyA83EhnWEfgqd-ejMqT_NkZJ23kte8-MV8';
 
 // ===== DOM =====
@@ -25,7 +28,6 @@ const coverEl = document.getElementById('cover');
 const z = s => s.toString().padStart(2,'0');
 const fmt = t => `${Math.floor(t/60)}:${z(Math.floor(t%60))}`;
 function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
-
 function parseQueryForArtistTitle(input){
   let s = input.trim();
   try { new URL(s); return null; } catch {}
@@ -135,7 +137,6 @@ function syncUI(){
     dur.textContent = fmt(d);
   }
 }
-
 seek.addEventListener('input', ()=>{ seek.dragging=true; });
 seek.addEventListener('change', ()=>{ A().currentTime = +seek.value; seek.dragging=false; });
 vol.addEventListener('input', ()=> A().volume = +vol.value);
@@ -156,15 +157,35 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
+// ===== Wait for YT ready (umesto alert odmah) =====
+function waitForYTReady(timeout=8000){
+  return new Promise(resolve=>{
+    if(ytReady) return resolve(true);
+    const start = Date.now();
+    const t = setInterval(()=>{
+      if(ytReady){ clearInterval(t); resolve(true); }
+      else if(Date.now()-start>timeout){ clearInterval(t); resolve(false); }
+    }, 120);
+  });
+}
+
 // ===== Search & Play =====
 q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') searchPlay.click(); });
 searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
-  if(!query){ return; }
-  if(!ytReady){ alert('YouTube player se učitava, probaj za sekund.'); return; }
+  if(!query) return;
+
+  const ready = await waitForYTReady(9000);
+  if(!ready){
+    alert('YouTube player je blokiran ili se nije učitao. Isključi ad-block za github.io i osveži stranicu.');
+    return;
+  }
 
   const video = await searchYouTubeFirstVideo(query);
-  if(!video){ alert('Nije nađen video.'); return; }
+  if(!video){
+    alert('Nije nađen video. Proveri API ključ ili probaj precizniji naziv.');
+    return;
+  }
 
   ytPlayer.loadVideoById(video.id);
   setTimeout(syncUI, 1200);
@@ -237,12 +258,10 @@ function applyMetaFromVideo(v){
   songTitleEl.textContent = v.title || 'YouTube';
   songArtistEl.textContent = v.channel || '—';
   coverEl.style.background = `
-    linear-gradient(0deg, rgba(0,0,0,.3), rgba(0,0,0,.1)),
+    linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,.1)),
     url('${v.thumb}') center/cover no-repeat,
     linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02))
   `;
-  coverEl.style.boxShadow = '0 20px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06)';
-  coverEl.style.borderRadius = '18px';
 }
 
 // LRCLIB fetch
