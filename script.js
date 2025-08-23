@@ -18,13 +18,15 @@ const clearBtn = document.getElementById('clear');
 const searchPlay = document.getElementById('searchPlay');
 const songTitleEl = document.getElementById('songTitle');
 const songArtistEl = document.getElementById('songArtist');
-const coverEl = document.getElementById('cover');
+const coverEl   = document.getElementById('cover');
 const resultsEl = document.getElementById('results');
 
 /************** 3) Helpers **************/
 const z = s => s.toString().padStart(2,'0');
 const fmt = t => `${Math.floor(t/60)}:${z(Math.floor(t%60))}`;
 const escapeHTML = s => s.replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+function setButtonLoading(){ searchPlay.disabled = true; searchPlay.textContent = 'Loading…'; }
+function setButtonIdle(){ searchPlay.disabled = false; searchPlay.textContent = 'Search'; }
 function parseQueryForArtistTitle(input){
   let s = input.trim();
   try { new URL(s); return null; } catch {}
@@ -33,8 +35,6 @@ function parseQueryForArtistTitle(input){
   const [artist, title] = s.split(sep, 2).map(x=>x.trim());
   return { artist, title };
 }
-function setButtonLoading(){ searchPlay.disabled = true; searchPlay.textContent = 'Loading…'; }
-function setButtonIdle(){ searchPlay.disabled = false; searchPlay.textContent = 'Search'; }
 
 /************** 4) LRC **************/
 function parseLRC(text){
@@ -64,7 +64,7 @@ const toLRC = lines => lines.map(x=>{
   return `[${z(m)}:${z(s)}.${z(cs)}] ${x.line}`;
 }).join('\n');
 function render(lines){
-  lyricsEl.innerHTML=''; 
+  lyricsEl.innerHTML='';
   const nodes = lines.map(({line})=>{
     const row = document.createElement('div');
     row.className='line';
@@ -167,7 +167,7 @@ seek.addEventListener('input', ()=>{ seek.dragging=true; });
 seek.addEventListener('change', ()=>{ A().currentTime = +seek.value; seek.dragging=false; });
 vol.addEventListener('input', ()=> A().volume = +vol.value);
 
-/************** 8) Search rezultati **************/
+/************** 8) Search — lista kao na YouTube **************/
 q.addEventListener('keydown', e=>{ if(e.key === 'Enter') searchPlay.click(); });
 clearBtn.addEventListener('click', ()=>{ q.value=''; q.focus(); });
 
@@ -175,30 +175,30 @@ searchPlay.addEventListener('click', async ()=>{
   const query = q.value.trim();
   if(!query) return;
 
-  // ako je link → direktno pusti
-  const id = extractYouTubeID(query);
-  if(id){
-    resultsEl.innerHTML = `<div class="msg">Otvoren YouTube video sa linka.</div>`;
-    await playVideoById(id, query);
+  // 0) Ako je direkt YouTube link/ID — napravi "listu" sa jednim rezultatom
+  const pasteId = extractYouTubeID(query);
+  if(pasteId){
+    renderResults([{ id: pasteId, title: query, channel: '', thumb: `https://img.youtube.com/vi/${pasteId}/mqdefault.jpg` }]);
     return;
   }
 
   setButtonLoading();
-  const ok = await ensureYTAPI(15000);
-  if(!ok){
-    setButtonIdle();
-    resultsEl.innerHTML = `<div class="msg">YouTube player je blokiran (ad-block?). Isključi blokatore za <b>github.io</b> i osveži.</div>`;
-    return;
+
+  // 1) Pokušaj YouTube Data API
+  let list = await searchYouTubeList(query, 8);
+
+  // 2) Ako nema/greška → fallback na Piped
+  if(!list || list.length === 0){
+    list = await searchPipedList(query, 8);
   }
 
-  const items = await searchYouTubeList(query, 8);
   setButtonIdle();
-  if(!items || items.length===0){
-    resultsEl.innerHTML = `<div class="msg">Nije nađen video. Proveri API key ili unesi precizniji naziv.</div>`;
+
+  if(!list || list.length === 0){
+    resultsEl.innerHTML = `<div class="msg">Nije nađen video (API i fallback nisu vratili rezultate). Pokušaj preciznije ili nalepi direkt YouTube link.</div>`;
     return;
   }
-
-  renderResults(items);
+  renderResults(list);
 });
 
 function renderResults(list){
@@ -218,13 +218,14 @@ function renderResults(list){
   }
 }
 
-async function playVideo(v){
-  await playVideoById(v.id, v.title, v.channel, v.thumb);
-}
+async function playVideo(v){ await playVideoById(v.id, v.title, v.channel, v.thumb); }
 async function playVideoById(id, title='', channel='', thumb=''){
   const ok = await ensureYTAPI(15000);
-  if(!ok) return;
-
+  if(!ok){
+    resultsEl.insertAdjacentHTML('afterbegin',
+      `<div class="msg">YouTube player je blokiran (ad-block?). Isključi blokatore za <b>github.io</b> i osveži.</div>`);
+    return;
+  }
   ytPlayer.loadVideoById(id);
   setTimeout(syncUI, 1200);
 
@@ -241,19 +242,17 @@ async function playVideoById(id, title='', channel='', thumb=''){
   A().play();
 }
 
-/************** 9) YouTube Data API **************/
+/************** 9) Pretrage **************/
 async function searchYouTubeList(query, maxResults=8){
   try{
+    if(!YT_API_KEY) return null;
     const params = new URLSearchParams({
       part:'snippet', q:query, type:'video', maxResults:String(maxResults), key:YT_API_KEY
     });
     const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
-    if(!r.ok){
-      console.warn('YT search error', r.status, await r.text());
-      return null;
-    }
+    if(!r.ok){ console.warn('YT search error', r.status, await r.text()); return null; }
     const data = await r.json();
-    const arr = (data.items||[]).map(it=>{
+    return (data.items||[]).map(it=>{
       const id = it.id?.videoId;
       const sn = it.snippet || {};
       return {
@@ -263,11 +262,33 @@ async function searchYouTubeList(query, maxResults=8){
         thumb: sn.thumbnails?.medium?.url || (id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : '')
       };
     });
-    return arr;
   }catch(e){
     console.error('YT search exception', e);
     return null;
   }
+}
+
+// Fallback preko Piped (bez API ključa)
+async function searchPipedList(query, maxResults=8){
+  const hosts = [
+    'https://piped.video',
+    'https://piped.projectsegfau.lt',
+    'https://piped.video' // ponovi kao rezerva
+  ];
+  for(const host of hosts){
+    try{
+      const r = await fetch(`${host}/api/v1/search?q=${encodeURIComponent(query)}&type=video&region=RS`);
+      if(!r.ok) continue;
+      const arr = await r.json();
+      const out = arr.slice(0, maxResults).map(it=>{
+        const id = it.id || (it.url ? (new URL(it.url, host)).searchParams.get('v') : null);
+        const thumb = it.thumbnail || (id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : '');
+        return { id, title: it.title || '', channel: it.uploaderName || '', thumb };
+      }).filter(x=>x.id);
+      if(out.length) return out;
+    }catch(e){ /* probaj sledeći host */ }
+  }
+  return null;
 }
 
 function extractYouTubeID(url){
@@ -325,5 +346,5 @@ fileInput.addEventListener('change', async (e)=>{
   const text = await f.text(); setLRC(text);
 });
 
-/************** 12) Init (demo) **************/
+/************** 12) Init **************/
 setLRC(demoLRC);
