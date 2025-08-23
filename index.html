@@ -4,59 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>T•Solutions — Lyrics Player</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#0b0f1a;--card:#131a2b;--stroke:rgba(255,255,255,.07);--fg:#e9f0ff;--muted:#9fb3ff;--accent:#41d2ff;--accent2:#9b6bff;--pill:#1f2a44}
-    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;color:var(--fg);
-      background:radial-gradient(1000px 700px at 20% 10%,rgba(65,210,255,.10),transparent 55%),
-                 radial-gradient(900px 600px at 80% 85%,rgba(155,107,255,.12),transparent 55%),var(--bg);overflow-x:hidden}
-    .bg{position:fixed;inset:-20%;filter:blur(80px);opacity:.35;pointer-events:none}
-    .fx1{background:radial-gradient(600px 600px at 25% 20%,rgba(65,210,255,.35),transparent 60%)}
-    .fx2{background:radial-gradient(600px 600px at 75% 80%,rgba(155,107,255,.35),transparent 60%)}
-    .site-header,.site-footer{max-width:1200px;margin:16px auto;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:44px;height:44px;border-radius:12px;object-fit:cover;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .brand-text .title{font-weight:800;letter-spacing:.2px}
-    .brand-text .tag{font-size:12px;color:var(--muted);opacity:.9}
-    .nav{display:flex;gap:10px}
-    .btn{border:1px solid var(--stroke);color:var(--fg);background:transparent;padding:10px 14px;border-radius:12px;cursor:pointer}
-    .btn:hover{filter:brightness(1.08)}.btn.solid{background:var(--fg);color:#0b0f1a;border-color:transparent;font-weight:700}
-    .btn.ghost{background:var(--pill)}.btn.round{width:44px;height:44px;border-radius:50%;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0f1a;font-weight:800;border:none}
-    .app{max-width:1200px;margin:24px auto 40px;display:grid;grid-template-columns:360px 1fr;gap:24px;padding:0 16px}
-    @media (max-width:1000px){.app{grid-template-columns:1fr}}
-    .panel{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.04));border:1px solid var(--stroke);
-      backdrop-filter:blur(14px);border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-    .left{padding:18px}
-    .cover{width:100%;aspect-ratio:1/1;border-radius:18px;margin-bottom:14px;background:
-      conic-gradient(from 0deg, rgba(65,210,255,.28), rgba(155,107,255,.28), rgba(65,210,255,.28)),
-      linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-      box-shadow:0 20px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06)}
-    .meta .song{margin:6px 0 2px;font-size:22px}.meta .artist{color:var(--muted);font-size:14px}.meta .artist span{color:var(--accent)}
-    .controls{margin-top:12px;display:flex;flex-direction:column;gap:12px}
-    .transport{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center}
-    .time{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
-    #seek,#vol{appearance:none;height:8px;border-radius:999px;background:var(--pill);outline:none}
-    #seek::-webkit-slider-thumb,#vol::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;box-shadow:0 0 0 3px rgba(255,255,255,.15)}
-    #cur,#dur{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
-    .actions{display:flex;gap:8px}
-    .lyrics-wrap{padding:16px;max-height:70vh;overflow:hidden}
-    .lyrics{height:100%;overflow:auto;scroll-behavior:smooth;padding-right:10px}
-    .placeholder{color:var(--muted);text-align:center;padding:40px 10px}
-    .line{padding:6px 2px;transform:translateX(0);transition:transform .25s}
-    .line.active{transform:translateX(4px)}
-    .line .base{color:#8fa4ff}
-    .line .fill{color:transparent;background-image:linear-gradient(var(--fg),var(--fg));
-      background-repeat:no-repeat;background-size:0% 100%;-webkit-background-clip:text;background-clip:text;
-      text-shadow:0 0 20px rgba(65,210,255,.22)}
-    .site-footer p{color:var(--muted);font-size:13px}
-  </style>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-  <div class="bg fx1"></div><div class="bg fx2"></div>
+  <div class="bg fx1"></div>
+  <div class="bg fx2"></div>
 
   <header class="site-header">
     <div class="brand">
@@ -66,18 +28,35 @@
         <div class="tag">FULL-STACK • .NET • GAMES • AI</div>
       </div>
     </div>
-    <nav class="nav"><a href="https://tatjanasepur.github.io/t-solutions-site/" target="_blank" class="btn solid">Hire me</a></nav>
+    <nav class="nav">
+      <a href="https://tatjanasepur.github.io/t-solutions-site/" target="_blank" class="btn solid">Hire me</a>
+    </nav>
   </header>
 
   <main class="app">
     <aside class="panel left">
-      <div class="cover"></div>
-      <div class="meta">
-        <h1 class="song">Demo Karaoke Sync</h1>
-        <div class="artist">by <span>T•Solutions</span></div>
+      <!-- Search / Load -->
+      <div class="search">
+        <input id="q" class="btn" style="width:100%" placeholder="Artist – Song (ili YouTube URL)">
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button id="findPlay" class="btn solid">Play from YouTube</button>
+          <button id="getLyrics" class="btn ghost">Fetch lyrics</button>
+        </div>
       </div>
 
+      <!-- YouTube player mount -->
+      <div id="yt" style="margin-top:12px; border-radius:14px; overflow:hidden; aspect-ratio:16/9; background:#000"></div>
+
+      <!-- Cover + meta -->
+      <div class="cover" id="cover"></div>
+      <div class="meta">
+        <h1 class="song" id="songTitle">Demo Karaoke Sync</h1>
+        <div class="artist">by <span id="songArtist">T•Solutions</span></div>
+      </div>
+
+      <!-- Controls -->
       <div class="controls">
+        <!-- Ostavljamo <audio> za lokalne mp3 (fallback) -->
         <audio id="audio" preload="metadata"><source src="audio.mp3" type="audio/mpeg"></audio>
 
         <div class="transport">
@@ -87,7 +66,9 @@
             <input id="seek" type="range" min="0" max="100" value="0" step="0.1" />
             <span id="dur">0:00</span>
           </div>
-          <div class="vol"><input id="vol" type="range" min="0" max="1" step="0.02" value="1" /></div>
+          <div class="vol">
+            <input id="vol" type="range" min="0" max="1" step="0.02" value="1" />
+          </div>
         </div>
 
         <div class="actions">
@@ -101,126 +82,19 @@
     <section class="panel lyrics-wrap">
       <div id="lyrics" class="lyrics">
         <div class="placeholder">
-          <p>Load audio and press ▶</p>
-          <p>Timed lines will auto-scroll & “fill” like karaoke.</p>
+          <p>Unesi pesmu ili YouTube URL, pa klikni ▶</p>
+          <p>Timed lines se same skroluju i „pune“ kao karaoke.</p>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer"><p>© T•Solutions — Modern web experiences</p></footer>
+  <footer class="site-footer">
+    <p>© T•Solutions — Modern web experiences</p>
+  </footer>
 
-  <script>
-    const audio = document.getElementById('audio');
-    const playBtn = document.getElementById('play');
-    const seek = document.getElementById('seek');
-    const vol = document.getElementById('vol');
-    const cur = document.getElementById('cur');
-    const dur = document.getElementById('dur');
-    const lyricsEl = document.getElementById('lyrics');
-    const loadDemo = document.getElementById('loadDemo');
-    const loadFile = document.getElementById('loadFile');
-    const fileInput = document.getElementById('fileInput');
-
-    const demoLRC = `
-[00:00.00] (Intro)
-[00:07.00] I code the rhythm as it flows
-[00:12.40] Lines of light and audio
-[00:17.80] Watch the lyrics come alive
-[00:23.10] This is T•Solutions vibe
-[00:28.50] (Instrumental)
-`;
-
-    const z = s => s.toString().padStart(2,'0');
-    const fmt = t => \`\${Math.floor(t/60)}:\${z(Math.floor(t%60))}\`;
-
-    function parseLRC(text){
-      const out=[];
-      for(const raw of text.split(/\\r?\\n/)){
-        const matches = [...raw.matchAll(/\\[(\\d{1,2}):(\\d{2})(?:\\.(\\d{1,2}))?\\]\\s*(.*)/g)];
-        for(const m of matches){
-          const min=+m[1], sec=+m[2], cs=+(m[3]||0);
-          const time=min*60+sec+cs/100;
-          const line=m[4].trim();
-          out.push({time,line});
-        }
-      }
-      out.sort((a,b)=>a.time-b.time);
-      for(let i=0;i<out.length;i++){
-        out[i].end = i<out.length-1 ? Math.max(out[i].time+0.4, out[i+1].time) : out[i].time+2.5;
-      }
-      return out;
-    }
-
-    function render(lines){
-      lyricsEl.innerHTML='';
-      const nodes = lines.map(({line})=>{
-        const row = document.createElement('div');
-        row.className='line';
-        row.innerHTML = \`<span class="base">\${escapeHTML(line)}</span>
-                         <span class="fill">\${escapeHTML(line)}</span>\`;
-        lyricsEl.appendChild(row);
-        return row;
-      });
-      return nodes;
-    }
-
-    function escapeHTML(s){return s.replace(/[&<>\"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
-
-    let LINES = []; let NODES = []; let idx = 0;
-
-    playBtn.addEventListener('click', ()=>{ if(audio.paused){ audio.play(); } else { audio.pause(); }});
-    audio.addEventListener('play', ()=> playBtn.textContent='⏸');
-    audio.addEventListener('pause',()=> playBtn.textContent='▶');
-
-    audio.addEventListener('loadedmetadata', ()=>{ seek.max = audio.duration || 0; dur.textContent = fmt(audio.duration || 0); });
-    audio.addEventListener('timeupdate', ()=>{ if(!seek.dragging){ seek.value = audio.currentTime; } cur.textContent = fmt(audio.currentTime || 0); });
-    seek.addEventListener('input', ()=>{ seek.dragging=true; });
-    seek.addEventListener('change', ()=>{ audio.currentTime = +seek.value; seek.dragging=false; });
-    vol.addEventListener('input', ()=> audio.volume = +vol.value);
-
-    loadDemo.addEventListener('click', ()=> setLRC(demoLRC));
-    loadFile.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', async (e)=>{
-      const f = e.target.files?.[0]; if(!f) return;
-      const text = await f.text(); setLRC(text);
-    });
-
-    function setLRC(text){
-      LINES = parseLRC(text);
-      if(!LINES.length){ lyricsEl.innerHTML = '<div class="placeholder">No timed lines found.</div>'; return; }
-      NODES = render(LINES); idx = 0;
-    }
-
-    function tick(){
-      const t = audio.currentTime || 0;
-      while(idx < LINES.length-1 && t >= LINES[idx+1].time - 0.01) idx++;
-      while(idx > 0 && t < LINES[idx].time - 0.01) idx--;
-
-      NODES.forEach((el,i)=> el.classList.toggle('active', i===idx));
-      const active = NODES[idx];
-      if(active){
-        const box = lyricsEl.getBoundingClientRect();
-        const r = active.getBoundingClientRect();
-        const delta = r.top - box.top - box.height*0.45;
-        if(Math.abs(delta) > 2) lyricsEl.scrollBy({top: delta, behavior:'smooth'});
-        const start = LINES[idx].time, end = LINES[idx].end;
-        const p = Math.max(0, Math.min(1, (t - start) / (end - start)));
-        const fill = active.querySelector('.fill');
-        if(fill) fill.style.backgroundSize = (p*100).toFixed(1) + '% 100%';
-      }
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-
-    // U startu pokaži DEMO da izgleda živo i BEZ audio fajla
-    setLRC(demoLRC);
-
-    // Ako želiš da radi i bez audio.mp3 (samo demonstracija):
-    // let fakeT=0; setInterval(()=>{ fakeT+=0.1; audio.currentTime=fakeT; }, 100);
-    // Object.defineProperty(audio,'currentTime',{get(){return fakeT},set(v){fakeT=v}});
-    // Object.defineProperty(audio,'duration',{get(){return 120}});
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
+
 
