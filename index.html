@@ -35,29 +35,28 @@
 
   <main class="app">
     <aside class="panel left">
-      <!-- Search / Load -->
+      <!-- Search -->
       <div class="search">
-        <input id="q" class="btn" style="width:100%" placeholder="Artist – Song (ili YouTube URL)">
+        <input id="q" class="btn" style="width:100%" placeholder="Artist – Song (samo upiši i pritisni Enter)">
         <div style="display:flex; gap:8px; margin-top:8px">
-          <button id="findPlay" class="btn solid">Play from YouTube</button>
-          <button id="getLyrics" class="btn ghost">Fetch lyrics</button>
+          <button id="searchPlay" class="btn solid">Search & Play</button>
         </div>
       </div>
 
-      <!-- YouTube player mount -->
+      <!-- YouTube mount -->
       <div id="yt" style="margin-top:12px; border-radius:14px; overflow:hidden; aspect-ratio:16/9; background:#000"></div>
 
-      <!-- Cover + meta -->
+      <!-- Meta -->
       <div class="cover" id="cover"></div>
       <div class="meta">
-        <h1 class="song" id="songTitle">Demo Karaoke Sync</h1>
+        <h1 class="song" id="songTitle">Search a song above ↑</h1>
         <div class="artist">by <span id="songArtist">T•Solutions</span></div>
       </div>
 
       <!-- Controls -->
       <div class="controls">
-        <!-- Ostavljamo <audio> za lokalne mp3 (fallback) -->
-        <audio id="audio" preload="metadata"><source src="audio.mp3" type="audio/mpeg"></audio>
+        <!-- Fallback audio tag (možeš i da ga izbrišeš, nije obavezno) -->
+        <audio id="audio" preload="metadata"><source src="" type="audio/mpeg"></audio>
 
         <div class="transport">
           <button id="play" class="btn round" aria-label="Play/Pause">▶</button>
@@ -82,8 +81,8 @@
     <section class="panel lyrics-wrap">
       <div id="lyrics" class="lyrics">
         <div class="placeholder">
-          <p>Unesi pesmu ili YouTube URL, pa klikni ▶</p>
-          <p>Timed lines se same skroluju i „pune“ kao karaoke.</p>
+          <p>Upiši pesmu (npr: "Adele – Hello") i pritisni Enter ili klikni “Search & Play”.</p>
+          <p>Lyrics će se automatski povući i sinhronizovati.</p>
         </div>
       </div>
     </section>
@@ -96,5 +95,6 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
